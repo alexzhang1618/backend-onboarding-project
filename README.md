@@ -31,14 +31,14 @@ We intentionally hid the ORM abstraction layer from you initially. Please make s
 
 A diagram detailing the database structure can be found [here](https://dbdiagram.io/d/61db423ef8370f0a2ee93059).
 
-- [ ] `GET /items` - returns a list of all the items
+- [X] `GET /items` - returns a list of all the items
   - Response
     - an array of objects of the following shape
       - `uuid`: the uuid of the item
       - `name`: the name of the item
       - `price`: the price of the item
       - `createdAt`: the time the item was created
-- [ ] `POST /item` - creates an item
+- [X] `POST /item` - creates an item
   - Input (Body, in json or form data)
     - `name`: the name of the item
     - `description`: the description of the item

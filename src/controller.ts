@@ -1,11 +1,18 @@
 import { Router, Request, Response } from "express";
 import path from "path";
-import { createItem, deleteItem } from "./service";
+import { createItem, deleteItem, getItems } from "./service";
 
 export const router = Router();
 
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'static', 'index.html'));
+});
+
+router.get('/items', async (req, res) => {
+  const items = await getItems(req.dbConnection);
+  return res.send({
+    items
+  });
 });
 
 // We're disabling bearer-based authentication for this example since it'll make it tricky to test with pure html
@@ -27,19 +34,18 @@ router.get('/', (req, res) => {
 
 // handle all POST requests that match '/'
 router.post('/item', async (req: Request, res: Response) => {
-  router.post('/item', async (req: Request, res: Response) => {
-    if (!('name' in req.body) || !('price' in req.body)) {
-      res.status(400).send('Missing required variables!');
-    }
-    const name = req.body.name as string;
-    const price = Number(req.body.price);
-    if (name.length < 0 || name.length > 26 || isNaN(price)) {
-      return res.status(400).send('Invalid argument shape!');
-    }
-    const uuid = await createItem(req.dbConnection, name, price);
-    return res.send({
-      uuid
-    });
+  if (!('name' in req.body) || !('price' in req.body) || !('description' in req.body)) {
+    return res.status(400).send('Missing required variables!');
+  }
+  const name = req.body.name as string;
+  const description = req.body.description as string;
+  const price = Number(req.body.price);
+  if (name.length < 0 || name.length > 26 || isNaN(price)) {
+    return res.status(400).send('Invalid argument shape!');
+  }
+  const uuid = await createItem(req.dbConnection, name, description, price);
+  return res.send({
+    uuid
   });
 });
 

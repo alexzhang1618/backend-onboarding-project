@@ -13,4 +13,7 @@ export class Item extends BaseEntity {
 
   @Column({ type: 'float' })
   price: number
+
+  @Column()
+  createdAt: string
 }
