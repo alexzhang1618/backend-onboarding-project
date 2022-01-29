@@ -45,7 +45,7 @@ A diagram detailing the database structure can be found [here](https://dbdiagram
     - `price`: the price of the item
   - Response:
     - `uuid`: the newly created item's uuid
-- [ ] `DELETE /items/:uuid` - deletes an item
+- [X] `DELETE /items/:uuid` - deletes an item
   - Response:
     - non 200 status code if there was a failure, 200 status code if it suceeded
 - [ ] `POST /order` - creates an order

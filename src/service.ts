@@ -1,3 +1,4 @@
+import { connect } from 'http2';
 import { Connection, EntityRepository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Item } from './models/Item';
@@ -31,11 +32,14 @@ export const createItem = async (conn: Connection, name: string, description: st
   return createdItem.uuid;
 };
 
-export const deleteItem = (name: string) => {
-  /*
-  if (!(name in db)) {
-    throw new Error("item doesn't exist!");
+/** Return true if the item was deleted, false if not */
+export const deleteItem = async (conn: Connection, uuid: string) => {
+  const db = conn.getRepository(Item);
+  const response = await db.delete(uuid);
+  console.log(response);
+  if (response.affected == 1) {
+    return true;
+  } else {
+    return false;
   }
-  delete db[name];
-  */
 }

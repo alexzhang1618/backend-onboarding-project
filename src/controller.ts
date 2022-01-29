@@ -49,14 +49,16 @@ router.post('/item', async (req: Request, res: Response) => {
   });
 });
 
-router.post('/deleteItem', (req: Request, res: Response) => {
-  if (!('name' in req.body)) {
-    res.status(400).send('Missing required variables!');
+router.delete('/items/:uuid', async (req: Request, res: Response) => {
+  /** Get the uuid parameters after "uuid:" */
+  const uuid = req.params.uuid.substring(5);
+  try {
+    const status = await deleteItem(req.dbConnection, uuid);
+    if (status) {
+      return res.status(200).send("Item successfully deleted.");
+    }
+    return res.status(400).send("Item not found.");
+  } catch (error) {
+    return res.status(400).send(error.toString());
   }
-  const name = req.body.name as string;
-  if (name.length < 0 || name.length > 26) {
-    return res.status(400).send('Invalid argument shape!');
-  }
-  const itemDeleted = deleteItem(name);
-  return res.send("item successfully deleted!");
 })
