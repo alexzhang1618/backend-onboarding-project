@@ -75,7 +75,7 @@ A diagram detailing the database structure can be found [here](https://dbdiagram
       - `item`:
         - `name`: the item name
         - `price`: the item price
-- [ ] `POST /user`: creates a new user
+- [X] `POST /user`: creates a new user
   - Input (Body, in json or form data)
     - `name`: the user's name
     - `password`: the password
@@ -84,7 +84,7 @@ A diagram detailing the database structure can be found [here](https://dbdiagram
   - `password`: 
   - Response:
     - `uuid`: the uuid of the user (used as an id for other methods)
-- [ ] `GET /users`: gets all users (we're not worried about security for the scope of this project)
+- [X] `GET /users`: gets all users (we're not worried about security for the scope of this project)
   - Response:
     - an array of objects of the following shape
       - `uuid`: a user's uuid

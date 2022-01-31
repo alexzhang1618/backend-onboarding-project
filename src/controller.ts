@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import path from "path";
-import { createItem, deleteItem, getItems } from "./service";
+import { createItem, deleteItem, getItems, createUser, getUsers } from "./service";
 
 export const router = Router();
 
@@ -12,6 +12,13 @@ router.get('/items', async (req, res) => {
   const items = await getItems(req.dbConnection);
   return res.send({
     items
+  });
+});
+
+router.get('/users', async (req, res) => {
+  const users = await getUsers(req.dbConnection);
+  return res.send({
+    users
   });
 });
 
@@ -61,4 +68,16 @@ router.delete('/items/:uuid', async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(400).send(error.toString());
   }
-})
+});
+
+router.post('/user', async (req: Request, res: Response) => {
+  if (!('name' in req.body) || (!('password' in req.body))) {
+    return res.status(400).send('Missing required variables!');
+  }
+  const name = req.body.name as string;
+  const password = req.body.password as string;
+  const uuid = await createUser(req.dbConnection, name, password);
+  return res.send({
+    uuid
+  });
+});

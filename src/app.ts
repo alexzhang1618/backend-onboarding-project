@@ -3,6 +3,8 @@ import bodyParser from 'body-parser';
 import "reflect-metadata" // required for typeorm
 import { createConnection } from "typeorm";
 import { Item } from './models/Item';
+import { User } from './models/User';
+import { Order } from './models/Order';
 import { router } from './controller';
 
 import cors from 'cors'
@@ -25,7 +27,9 @@ const main = async () => {
     password: "password",
     database: "testdb",
     entities: [
-      Item
+      Item,
+      User,
+      Order
     ],
     synchronize: true,
     logging: false
