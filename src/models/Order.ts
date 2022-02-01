@@ -13,9 +13,9 @@ export class Order extends BaseEntity {
   @Column()
   createdAt: string
 
-  @ManyToOne(() => User, user => user.uuid)
-  user_id: string
+  @ManyToOne(() => User, user => user.orders)
+  user: User
 
-  @ManyToOne(() => Item, item => item.uuid)
-  item_id: string
+  @ManyToOne(() => Item, item => item.orders)
+  item: Item
 }
