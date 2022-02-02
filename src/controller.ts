@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import path from "path";
-import { createItem, deleteItem, getItems, createUser, getUsers } from "./service";
+import { createBrotliDecompress } from "zlib";
+import { createItem, deleteItem, getItems, createUser, getUsers, createOrder, getOrders } from "./service";
 
 export const router = Router();
 
@@ -10,17 +11,28 @@ router.get('/', (req, res) => {
 
 router.get('/items', async (req, res) => {
   const items = await getItems(req.dbConnection);
-  return res.send({
+  return res.send(
     items
-  });
+  );
 });
 
 router.get('/users', async (req, res) => {
   const users = await getUsers(req.dbConnection);
-  return res.send({
+  return res.send(
     users
-  });
+  );
 });
+
+router.get('/orders', async (req, res) => {
+  if (!('userId' in req.query)) {
+    return res.status(400).send('Missing required variables!');
+  }
+  const userId = req.query.userId as string;
+  const orders = await getOrders(req.dbConnection, userId);
+  return res.send(
+    orders
+  );
+})
 
 // We're disabling bearer-based authentication for this example since it'll make it tricky to test with pure html
 // sending bearer tokens in your requests is *far* easier using frameworks like axios or fetch
@@ -51,14 +63,17 @@ router.post('/item', async (req: Request, res: Response) => {
     return res.status(400).send('Invalid argument shape!');
   }
   const uuid = await createItem(req.dbConnection, name, description, price);
-  return res.send({
+  return res.send(
     uuid
-  });
+  );
 });
 
 router.delete('/items/:uuid', async (req: Request, res: Response) => {
   /** Get the uuid parameters after "uuid:" */
-  const uuid = req.params.uuid.substring(5);
+  if (!('uuid' in req.params)) {
+    return res.status(400).send('Missing required variables!');
+  }
+  const uuid = req.params.uuid;
   try {
     const status = await deleteItem(req.dbConnection, uuid);
     if (status) {
@@ -77,7 +92,19 @@ router.post('/user', async (req: Request, res: Response) => {
   const name = req.body.name as string;
   const password = req.body.password as string;
   const uuid = await createUser(req.dbConnection, name, password);
-  return res.send({
+  return res.send(
     uuid
-  });
+  );
+});
+
+router.post('/order', async (req: Request, res: Response) => {
+  if (!('itemId' in req.body) || !('userId' in req.body)) {
+    return res.status(400).send('Missing required variables!');
+  }
+  const itemId = req.body.itemId as string;
+  const userId = req.body.userId as string;
+  const order = await createOrder(req.dbConnection, itemId, userId);
+  return res.send(
+    order
+  );
 });

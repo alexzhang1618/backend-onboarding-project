@@ -2,6 +2,7 @@ import { connect } from 'http2';
 import { Connection, EntityRepository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Item } from './models/Item';
+import { Order } from './models/Order';
 import { User } from './models/User';
 
 export const getItems = async (conn: Connection) => {
@@ -38,6 +39,13 @@ export const getUsers = async (conn: Connection) => {
   });
 };
 
+export const getOrders = async (conn: Connection, userId: string) => {
+  /**TODO */
+  const db = conn.getRepository(User);
+  const user = await db.findOne({ where: { 'uuid': userId } });
+  return user.orders;
+}
+
 export const createItem = async (conn: Connection, name: string, description: string, price: number) => {
   const item = new Item();
   item.name = name;
@@ -52,15 +60,26 @@ export const createUser = async (conn: Connection, name: string, password: strin
   const user = new User();
   user.name = name;
   user.password = password;
+  user.orders = [];
   const createdUser = await conn.manager.save(user);
   return createdUser.uuid;
+};
+
+export const createOrder = async (conn: Connection, itemId: string, userId: string) => {
+  const user = await conn.getRepository(User).findOne({ where: { 'uuid': userId } });
+  const item = await conn.getRepository(Item).findOne({ where: { 'uuid': itemId } });
+  const order = new Order();
+  order.createdAt = new Date().toString();
+  order.user = user;
+  order.item = item;
+  const res = await conn.manager.save(order);
+  return res;
 };
 
 /** Return true if the item was deleted, false if not */
 export const deleteItem = async (conn: Connection, uuid: string) => {
   const db = conn.getRepository(Item);
   const response = await db.delete(uuid);
-  console.log(response);
   if (response.affected == 1) {
     return true;
   } else {
