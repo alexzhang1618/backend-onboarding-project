@@ -11,13 +11,16 @@ export const getItems = async (conn: Connection) => {
   class Entry {
     uuid: string;
     name: string;
+    description: string;
     price: number;
     createdAt: string;
   };
   return items.map((item) => {
+    console.log(item.orders);
     const entry = new Entry();
     entry.uuid = item.uuid;
     entry.name = item.name;
+    entry.description = item.description;
     entry.price = item.price;
     entry.createdAt = item.createdAt;
     return entry;
@@ -41,9 +44,23 @@ export const getUsers = async (conn: Connection) => {
 
 export const getOrders = async (conn: Connection, userId: string) => {
   /**TODO */
-  const db = conn.getRepository(User);
-  const user = await db.findOne({ where: { 'uuid': userId } });
-  return user.orders;
+  const db = conn.getRepository(Order);
+  const orders = await db.find({ where: { 'user': userId } });
+  class Entry {
+    uuid: string;
+    createdAt: string;
+    item: Item;
+  }
+  const itemDb = conn.getRepository(Item);
+  return orders;
+  return orders.map(async (order) => {
+    console.log(order.item)
+    const entry = new Entry();
+    entry.uuid = order.uuid;
+    entry.createdAt = order.createdAt;
+    entry.item = await itemDb.findOne(order.item);
+    return entry;
+  });
 }
 
 export const createItem = async (conn: Connection, name: string, description: string, price: number) => {
@@ -52,6 +69,7 @@ export const createItem = async (conn: Connection, name: string, description: st
   item.description = description;
   item.price = price;
   item.createdAt = new Date().toString();
+  item.orders = [];
   const createdItem = await conn.manager.save(item);
   return createdItem.uuid;
 };

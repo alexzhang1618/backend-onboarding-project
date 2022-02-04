@@ -17,6 +17,6 @@ export class Item extends BaseEntity {
   @Column()
   createdAt: string
 
-  @OneToMany(() => Order, order => order.item)
+  @OneToMany(() => Order, order => order.item, { onDelete: 'CASCADE' })
   orders: Order[]
 }

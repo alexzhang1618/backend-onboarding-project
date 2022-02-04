@@ -71,17 +71,17 @@ router.post('/item', async (req: Request, res: Response) => {
 router.delete('/items/:uuid', async (req: Request, res: Response) => {
   /** Get the uuid parameters after "uuid:" */
   if (!('uuid' in req.params)) {
-    return res.status(400).send('Missing required variables!');
+    return res.status(400).send({ error: true, message: 'Missing required variables!' });
   }
   const uuid = req.params.uuid;
   try {
     const status = await deleteItem(req.dbConnection, uuid);
     if (status) {
-      return res.status(200).send("Item successfully deleted.");
+      return res.status(200).send({ error: false, message: "success" });
     }
-    return res.status(400).send("Item not found.");
-  } catch (error) {
-    return res.status(400).send(error.toString());
+    return res.status(400).send({ error: true, message: "Item not found." });
+  } catch (err) {
+    return res.status(400).send({ error: true, message: err.toString() });
   }
 });
 

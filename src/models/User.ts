@@ -12,6 +12,6 @@ export class User {
   @Column()
   password: string
 
-  @OneToMany(() => Order, order => order.user)
+  @OneToMany(() => Order, order => order.user, { onDelete: 'CASCADE' })
   orders: Order[]
 }

@@ -10,9 +10,9 @@ export class Order {
   @Column()
   createdAt: string
 
-  @ManyToOne(() => User, user => user.orders, { cascade: true })
+  @ManyToOne(() => User, user => user.orders, { onDelete: 'CASCADE' })
   user: User
 
-  @ManyToOne(() => Item, item => item.orders, { cascade: true })
+  @ManyToOne(() => Item, item => item.orders, { onDelete: 'CASCADE' })
   item: Item
 }
