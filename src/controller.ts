@@ -32,7 +32,7 @@ router.get('/orders', async (req, res) => {
   return res.send(
     orders
   );
-})
+});
 
 // We're disabling bearer-based authentication for this example since it'll make it tricky to test with pure html
 // sending bearer tokens in your requests is *far* easier using frameworks like axios or fetch

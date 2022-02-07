@@ -1,5 +1,5 @@
 import { connect } from 'http2';
-import { Connection, EntityRepository } from 'typeorm';
+import { Connection, createQueryBuilder, EntityRepository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Item } from './models/Item';
 import { Order } from './models/Order';
@@ -45,22 +45,17 @@ export const getUsers = async (conn: Connection) => {
 export const getOrders = async (conn: Connection, userId: string) => {
   /**TODO */
   const db = conn.getRepository(Order);
-  const orders = await db.find({ where: { 'user': userId } });
+  const orders = await db.createQueryBuilder("order")
+    .innerJoinAndSelect("order.item", "item")
+    .where("order.user = :user", { user: userId })
+    .getMany();
+  console.log(orders);
   class Entry {
     uuid: string;
     createdAt: string;
     item: Item;
   }
-  const itemDb = conn.getRepository(Item);
   return orders;
-  return orders.map(async (order) => {
-    console.log(order.item)
-    const entry = new Entry();
-    entry.uuid = order.uuid;
-    entry.createdAt = order.createdAt;
-    entry.item = await itemDb.findOne(order.item);
-    return entry;
-  });
 }
 
 export const createItem = async (conn: Connection, name: string, description: string, price: number) => {
