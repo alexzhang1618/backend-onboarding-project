@@ -1,6 +1,4 @@
-import { connect } from 'http2';
 import { Connection, createQueryBuilder, EntityRepository } from 'typeorm';
-import { v4 } from 'uuid';
 import { Item } from './models/Item';
 import { Order } from './models/Order';
 import { User } from './models/User';
@@ -16,7 +14,6 @@ export const getItems = async (conn: Connection) => {
     createdAt: string;
   };
   return items.map((item) => {
-    console.log(item.orders);
     const entry = new Entry();
     entry.uuid = item.uuid;
     entry.name = item.name;
@@ -42,14 +39,45 @@ export const getUsers = async (conn: Connection) => {
   });
 };
 
+export const getUser = async (conn: Connection, uuid: string) => {
+  const db = conn.getRepository(User);
+  const user = await db.createQueryBuilder("user")
+    .innerJoinAndSelect("user.orders", "order")
+    .innerJoinAndSelect("order.item", "item")
+    .where("user.uuid = :userUuid", { userUuid: uuid })
+    .getOne();
+  class orderEntry {
+    uuid: string;
+    item: string;
+    price: number;
+    createdAt: string;
+  }
+  class Entry {
+    uuid: string;
+    name: string;
+    orders: orderEntry[];
+  }
+  const orders = user.orders.map((order) => {
+    const oEntry = new orderEntry();
+    oEntry.uuid = order.uuid;
+    oEntry.item = order.item.name;
+    oEntry.price = order.item.price;
+    oEntry.createdAt = order.createdAt;
+    return oEntry;
+  })
+  const ret = new Entry();
+  ret.uuid = user.uuid;
+  ret.name = user.name;
+  ret.orders = orders;
+  return ret;
+}
+
 export const getOrders = async (conn: Connection, userId: string) => {
-  /**TODO */
   const db = conn.getRepository(Order);
   const orders = await db.createQueryBuilder("order")
     .innerJoinAndSelect("order.item", "item")
     .where("order.user = :user", { user: userId })
     .getMany();
-  console.log(orders);
   class Entry {
     uuid: string;
     createdAt: string;
@@ -75,7 +103,7 @@ export const createUser = async (conn: Connection, name: string, password: strin
   user.password = password;
   user.orders = [];
   const createdUser = await conn.manager.save(user);
-  return createdUser.uuid;
+  return { username: name, password: password, uuid: createdUser.uuid };
 };
 
 export const createOrder = async (conn: Connection, itemId: string, userId: string) => {
@@ -99,3 +127,14 @@ export const deleteItem = async (conn: Connection, uuid: string) => {
     return false;
   }
 };
+
+export const login = async (conn: Connection, username: string, password: string) => {
+  const db = conn.getRepository(User);
+  const response = await db.find();
+  for (let i = 0; i < response.length; i++) {
+    if (response[i].name == username && response[i].password == password) {
+      return response[i].uuid;
+    }
+  }
+  return "";
+}

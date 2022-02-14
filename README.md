@@ -80,7 +80,7 @@ A diagram detailing the database structure can be found [here](https://dbdiagram
   - Input (Body, in json or form data)
     - `name`: the user's name
     - `password`: the password
-- [ ] `POST /login`: 
+- [X] `POST /login`: 
   - `username`: 
   - `password`: 
   - Response:
@@ -90,7 +90,7 @@ A diagram detailing the database structure can be found [here](https://dbdiagram
     - an array of objects of the following shape
       - `uuid`: a user's uuid
       - `name`: a user's name
-- [ ] `GET /user/:uuid`: gets information about a user
+- [X] `GET /user/:uuid`: gets information about a user
   - Response:
     - `uuid`: the user's uuid
     - `name`: a user's name

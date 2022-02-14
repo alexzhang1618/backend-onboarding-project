@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import path from "path";
-import { createBrotliDecompress } from "zlib";
-import { createItem, deleteItem, getItems, createUser, getUsers, createOrder, getOrders } from "./service";
+import { createItem, deleteItem, getItems, createUser, getUsers, createOrder, getOrders, login, getUser } from "./service";
 
 export const router = Router();
 
@@ -34,6 +33,18 @@ router.get('/orders', async (req, res) => {
   );
 });
 
+router.get('/user/:uuid', async (req, res) => {
+  /** Get the uuid parameters after "uuid:" */
+  if (!('uuid' in req.params)) {
+    return res.status(400).send({ error: true, message: 'Missing required variables!' });
+  }
+  const uuid = req.params.uuid;
+  const user = await getUser(req.dbConnection, uuid);
+  return res.send(
+    user
+  );
+})
+
 // We're disabling bearer-based authentication for this example since it'll make it tricky to test with pure html
 // sending bearer tokens in your requests is *far* easier using frameworks like axios or fetch
 // const authorizedUsers = ["ronak"]; // not really how auth works, but this is a simple example
@@ -63,9 +74,9 @@ router.post('/item', async (req: Request, res: Response) => {
     return res.status(400).send('Invalid argument shape!');
   }
   const uuid = await createItem(req.dbConnection, name, description, price);
-  return res.send(
-    uuid
-  );
+  return res.send({
+    uuid: uuid
+  });
 });
 
 router.delete('/items/:uuid', async (req: Request, res: Response) => {
@@ -107,4 +118,19 @@ router.post('/order', async (req: Request, res: Response) => {
   return res.send(
     order
   );
+});
+
+router.post('/login', async (req: Request, res: Response) => {
+  if (!('username' in req.body) || !('password' in req.body)) {
+    return res.status(400).send('Missing required variables!');
+  }
+  const username = req.body.username as string;
+  const password = req.body.password as string;
+  const uuid = await login(req.dbConnection, username, password);
+  if (uuid.length == 0) {
+    return res.status(400).send({ error: true, message: "User not found." });
+  }
+  return res.send({
+    uuid: uuid
+  });
 });
