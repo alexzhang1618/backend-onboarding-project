@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import path from "path";
-import { createItem, deleteItem, getItems, createUser, getUsers, createOrder, getOrders, login, getUser } from "./service";
+import { createItem, deleteItem, getItems, createUser, getUsers, createOrder, getOrders, login, getUser, getItem } from "./service";
 
 export const router = Router();
 
@@ -40,11 +40,27 @@ router.get('/user/:uuid', async (req, res) => {
   }
   const uuid = req.params.uuid;
   const user = await getUser(req.dbConnection, uuid);
+  if (user == null) {
+    return res.status(400).send({ error: true, message: 'User not found!' });
+  }
   return res.send(
     user
   );
 })
 
+router.get("/orders/:uuid", async (req, res) => {
+  if (!('uuid' in req.params)) {
+    return res.status(400).send({ error: true, message: 'Missing required variables!' });
+  }
+  const uuid = req.params.uuid;
+  const item = await getItem(req.dbConnection, uuid);
+  if (item == null) {
+    return res.status(400).send({ error: true, message: 'Item not found!' });
+  }
+  return res.send(
+    item
+  );
+})
 // We're disabling bearer-based authentication for this example since it'll make it tricky to test with pure html
 // sending bearer tokens in your requests is *far* easier using frameworks like axios or fetch
 // const authorizedUsers = ["ronak"]; // not really how auth works, but this is a simple example
@@ -115,6 +131,9 @@ router.post('/order', async (req: Request, res: Response) => {
   const itemId = req.body.itemId as string;
   const userId = req.body.userId as string;
   const order = await createOrder(req.dbConnection, itemId, userId);
+  if (order == null) {
+    return res.status(400).send('Invalid user or item!');
+  }
   return res.send(
     order
   );
@@ -128,9 +147,11 @@ router.post('/login', async (req: Request, res: Response) => {
   const password = req.body.password as string;
   const uuid = await login(req.dbConnection, username, password);
   if (uuid.length == 0) {
-    return res.status(400).send({ error: true, message: "User not found." });
+    return res.status(400).send({ error: true, message: "Incorrect username or password." });
   }
   return res.send({
-    uuid: uuid
+    uuid: uuid,
+    username: username,
+    password: password
   });
 });

@@ -41,7 +41,7 @@ export const getUsers = async (conn: Connection) => {
 
 export const getUser = async (conn: Connection, uuid: string) => {
   const db = conn.getRepository(User);
-  const user = await db.createQueryBuilder("user")
+  let user = await db.createQueryBuilder("user")
     .innerJoinAndSelect("user.orders", "order")
     .innerJoinAndSelect("order.item", "item")
     .where("user.uuid = :userUuid", { userUuid: uuid })
@@ -57,14 +57,25 @@ export const getUser = async (conn: Connection, uuid: string) => {
     name: string;
     orders: orderEntry[];
   }
-  const orders = user.orders.map((order) => {
-    const oEntry = new orderEntry();
-    oEntry.uuid = order.uuid;
-    oEntry.item = order.item.name;
-    oEntry.price = order.item.price;
-    oEntry.createdAt = order.createdAt;
-    return oEntry;
-  })
+  if (user == null) {
+    user = await db.findOne(uuid);
+    const ret = new Entry();
+    ret.uuid = user.uuid;
+    ret.name = user.name;
+    ret.orders = null;
+    return ret;
+  }
+  let orders = null;
+  if (user.orders != null) {
+    orders = user.orders.map((order) => {
+      const oEntry = new orderEntry();
+      oEntry.uuid = order.uuid;
+      oEntry.item = order.item.name;
+      oEntry.price = order.item.price;
+      oEntry.createdAt = order.createdAt;
+      return oEntry;
+    })
+  }
   const ret = new Entry();
   ret.uuid = user.uuid;
   ret.name = user.name;
@@ -84,6 +95,19 @@ export const getOrders = async (conn: Connection, userId: string) => {
     item: Item;
   }
   return orders;
+}
+
+export const getItem = async (conn: Connection, itemId: string) => {
+  const db = conn.getRepository(Item);
+  const item = await db.createQueryBuilder("item")
+    .innerJoinAndSelect("item.orders", "order")
+    .innerJoinAndSelect("order.user", "user")
+    .where("item.uuid = :itemUuid", { itemUuid: itemId })
+    .getOne();
+  if (item == null) {
+    return await db.findOne(itemId);
+  }
+  return item;
 }
 
 export const createItem = async (conn: Connection, name: string, description: string, price: number) => {
@@ -109,6 +133,10 @@ export const createUser = async (conn: Connection, name: string, password: strin
 export const createOrder = async (conn: Connection, itemId: string, userId: string) => {
   const user = await conn.getRepository(User).findOne({ where: { 'uuid': userId } });
   const item = await conn.getRepository(Item).findOne({ where: { 'uuid': itemId } });
+  if (item == null || user == null) {
+    return null;
+  }
+  console.log(item);
   const order = new Order();
   order.createdAt = new Date().toString();
   order.user = user;
